@@ -807,7 +807,9 @@ var wc_cart_fragments_params = {"ajax_url":"/be/paintstore/wp-admin/admin-ajax.p
     <p class="jas-rev-eyebrow"><i></i>Reviews &amp; ratings</p>
     <h2>What travellers say about our service</h2>
     <p class="jas-rev-sub">Real feedback on bookings, stays, transport and support &#8211; from travellers across India.</p>
-    <div class="jas-rev-grid">
+    <div class="jas-rev-slider">
+      <button class="jas-rev-nav prev" type="button" aria-label="Previous reviews">&#8592;</button>
+      <div class="jas-rev-track">
       <figure class="jas-rev">
         <div class="jas-rev-head">
           <img src="assets/img/avatars/rev-01.png" alt="Aditya Sharma" loading="lazy">
@@ -927,7 +929,10 @@ var wc_cart_fragments_params = {"ajax_url":"/be/paintstore/wp-admin/admin-ajax.p
         <div class="jas-rev-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
         <blockquote>Reached out at 11 pm for a next-morning flight. Had a confirmed seat in fifteen minutes.</blockquote>
       </figure>
+      </div>
+      <button class="jas-rev-nav next" type="button" aria-label="Next reviews">&#8594;</button>
     </div>
+    <div class="jas-rev-dots" role="tablist"></div>
   </div>
 </section>
 <style id="jas-reviews-css">
@@ -938,8 +943,12 @@ var wc_cart_fragments_params = {"ajax_url":"/be/paintstore/wp-admin/admin-ajax.p
 #jas-reviews .jas-rev-eyebrow i{width:8px;height:8px;border-radius:50%;background:#f5b31b;display:inline-block}
 #jas-reviews h2{font-size:32px;line-height:1.22;margin:0 0 10px;color:#14375f;font-weight:800}
 #jas-reviews .jas-rev-sub{max-width:720px;margin:0 0 30px;color:#5b667a;font-size:15.5px;line-height:1.65}
-#jas-reviews .jas-rev-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px}
-#jas-reviews .jas-rev{margin:0;background:#f7f9fc;border:1px solid #e6edf6;border-radius:16px;padding:18px;
+#jas-reviews .jas-rev-slider{position:relative}
+#jas-reviews .jas-rev-track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;padding:4px 2px 10px;scrollbar-width:none;-ms-overflow-style:none}
+#jas-reviews .jas-rev-track::-webkit-scrollbar{display:none}
+#jas-reviews .jas-rev{margin:0;flex:0 0 calc((100% - 54px)/4);scroll-snap-align:start;
+  background:#f7f9fc;border:1px solid #e6edf6;border-radius:16px;padding:18px;
   display:flex;flex-direction:column;transition:.2s}
 #jas-reviews .jas-rev:hover{box-shadow:0 12px 30px rgba(20,55,95,.12);transform:translateY(-3px);background:#fff}
 #jas-reviews .jas-rev-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
@@ -950,12 +959,81 @@ var wc_cart_fragments_params = {"ajax_url":"/be/paintstore/wp-admin/admin-ajax.p
 #jas-reviews .jas-rev-stars{color:#f5b31b;font-size:14px;letter-spacing:1px;margin-bottom:8px}
 #jas-reviews .jas-rev-stars .off{color:#d6dfeb}
 #jas-reviews blockquote{margin:0;font-size:13.5px;line-height:1.6;color:#5b667a}
-@media (max-width:1100px){#jas-reviews .jas-rev-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+#jas-reviews .jas-rev-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:42px;height:42px;
+  border-radius:50%;border:1px solid #dbe4f0;background:#fff;color:#1b5aa8;font-size:17px;font-weight:800;
+  cursor:pointer;box-shadow:0 8px 22px rgba(20,55,95,.16);transition:.2s;display:flex;
+  align-items:center;justify-content:center}
+#jas-reviews .jas-rev-nav:hover{background:#1b5aa8;color:#fff;border-color:#1b5aa8}
+#jas-reviews .jas-rev-nav.prev{left:-16px}
+#jas-reviews .jas-rev-nav.next{right:-16px}
+#jas-reviews .jas-rev-nav[disabled]{opacity:.35;cursor:default;background:#fff;color:#1b5aa8}
+#jas-reviews .jas-rev-dots{display:flex;justify-content:center;gap:7px;margin-top:18px}
+#jas-reviews .jas-rev-dots button{width:8px;height:8px;border-radius:50%;border:0;padding:0;cursor:pointer;
+  background:#cfd9e6;transition:.2s}
+#jas-reviews .jas-rev-dots button.on{background:#1b5aa8;width:22px;border-radius:4px}
+@media (max-width:1100px){#jas-reviews .jas-rev{flex:0 0 calc((100% - 36px)/3)}}
+@media (max-width:760px){#jas-reviews .jas-rev{flex:0 0 calc((100% - 18px)/2)}}
 @media (max-width:760px){#jas-reviews{padding:48px 0}
   #jas-reviews h2{font-size:24px}
-  #jas-reviews .jas-rev-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}}
-@media (max-width:520px){#jas-reviews .jas-rev-grid{grid-template-columns:1fr}}
+  #jas-reviews .jas-rev-nav{display:none}}
+@media (max-width:520px){#jas-reviews .jas-rev{flex:0 0 100%}}
 </style>
+<script>
+(function(){
+  var sec=document.getElementById('jas-reviews');
+  if(!sec) return;
+  var track=sec.querySelector('.jas-rev-track');
+  var prev=sec.querySelector('.jas-rev-nav.prev');
+  var next=sec.querySelector('.jas-rev-nav.next');
+  var dotsBox=sec.querySelector('.jas-rev-dots');
+  var cards=track.querySelectorAll('.jas-rev');
+  if(!cards.length) return;
+
+  function step(){
+    var gap=parseFloat(getComputedStyle(track).columnGap||18)||18;
+    return cards[0].getBoundingClientRect().width+gap;
+  }
+  function perView(){
+    return Math.max(1, Math.round(track.clientWidth/step()));
+  }
+  function pages(){
+    return Math.max(1, Math.ceil(cards.length/perView()));
+  }
+  function buildDots(){
+    dotsBox.innerHTML='';
+    for(var i=0;i<pages();i++){
+      var b=document.createElement('button');
+      b.type='button'; b.setAttribute('aria-label','Go to reviews page '+(i+1));
+      b.addEventListener('click',function(){ track.scrollTo({left:this.idx*track.clientWidth,behavior:'smooth'}); });
+      b.idx=i; dotsBox.appendChild(b);
+    }
+    sync();
+  }
+  function sync(){
+    var idx=Math.round(track.scrollLeft/track.clientWidth);
+    var ds=dotsBox.children;
+    for(var i=0;i<ds.length;i++) ds[i].className=(i===idx?'on':'');
+    if(prev) prev.disabled = track.scrollLeft<=2;
+    if(next) next.disabled = track.scrollLeft >= track.scrollWidth-track.clientWidth-2;
+  }
+  if(prev) prev.addEventListener('click',function(){ track.scrollBy({left:-track.clientWidth,behavior:'smooth'}); });
+  if(next) next.addEventListener('click',function(){ track.scrollBy({left:track.clientWidth,behavior:'smooth'}); });
+  track.addEventListener('scroll',function(){ window.requestAnimationFrame(sync); });
+  window.addEventListener('resize',function(){ buildDots(); });
+  buildDots();
+
+  // gentle autoplay, pauses on hover / touch
+  var paused=false;
+  track.addEventListener('mouseenter',function(){paused=true;});
+  track.addEventListener('mouseleave',function(){paused=false;});
+  track.addEventListener('touchstart',function(){paused=true;},{passive:true});
+  setInterval(function(){
+    if(paused) return;
+    if(track.scrollLeft >= track.scrollWidth-track.clientWidth-2){ track.scrollTo({left:0,behavior:'smooth'}); }
+    else { track.scrollBy({left:track.clientWidth,behavior:'smooth'}); }
+  }, 6000);
+})();
+</script>
 <footer id="jas-footer">
   <div class="jas-f-wrap">
     <div class="jas-f-grid">
