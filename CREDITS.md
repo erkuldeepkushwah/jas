@@ -42,3 +42,6 @@ supplied by the site owner.
 
 `dom-05` to `dom-12` are the JAS Tours & Travels package images supplied by the
 site owner (originally served from the Google AI Studio CDN).
+
+`intl-01` to `intl-08` are the JAS Tours & Travels international package images
+supplied by the site owner (originally served from the Google AI Studio CDN).
