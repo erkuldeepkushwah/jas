@@ -1,0 +1,8 @@
+{
+  "name": "BePaintStore",
+  "description": "Auto paint and car care supplies store showcasing premium primers, blockers, coatings, and prepaint cleaners.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

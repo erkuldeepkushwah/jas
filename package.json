@@ -1,0 +1,15 @@
+{
+  "name": "jas",
+  "version": "1.0.0",
+  "description": "Auto paint and car care supplies store migrated from static HTML",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node -e \"console.log('Build completed')\""
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
