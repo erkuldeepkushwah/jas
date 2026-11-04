@@ -34,3 +34,11 @@ CC BY-SA require attribution — keep this file with the site (or add a credits 
 
 `assets/img/logo.png` and `assets/img/favicon.png` are the JAS Tour & Travels logo,
 supplied by the site owner.
+
+## Domestic package photos (`assets/img/dom-*.jpg`)
+
+`dom-01` to `dom-04` reuse the Wikimedia Commons photos listed above
+(Dal Lake, Hawa Mahal, Kerala houseboats, Goa coast).
+
+`dom-05` to `dom-12` are the JAS Tours & Travels package images supplied by the
+site owner (originally served from the Google AI Studio CDN).
