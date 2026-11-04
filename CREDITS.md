@@ -47,3 +47,6 @@ site owner (originally served from the Google AI Studio CDN).
 supplied by the site owner (originally served from the Google AI Studio CDN).
 
 `hero-kashmir.jpg` (Dal Lake, Srinagar hero background) was supplied by the site owner.
+
+`svc-flight.jpg`, `svc-train.jpg`, `svc-bus.jpg` and `svc-holiday.jpg` (booking services
+section) were supplied by the site owner.
