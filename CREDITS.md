@@ -45,3 +45,5 @@ site owner (originally served from the Google AI Studio CDN).
 
 `intl-01` to `intl-08` are the JAS Tours & Travels international package images
 supplied by the site owner (originally served from the Google AI Studio CDN).
+
+`hero-kashmir.jpg` (Dal Lake, Srinagar hero background) was supplied by the site owner.
