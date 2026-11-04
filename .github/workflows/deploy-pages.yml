@@ -27,7 +27,7 @@ jobs:
       - name: Assemble static site
         run: |
           mkdir -p _site
-          cp index.html contact.html domestic.html _site/
+          cp index.html contact.html domestic.html international.html _site/
           cp -r assets _site/
           # Jas/ holds raw theme copies; not part of the published site
           touch _site/.nojekyll
