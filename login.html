@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | JAS Tour &amp; Travels</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 1rem/1.5 system-ui, sans-serif; color: #172436; background: #edf3f5; }
+    main { min-height: 100svh; display: grid; place-items: center; padding: 24px; }
+    article { width: min(100%, 850px); display: grid; grid-template-columns: 1fr 1fr; background: #fff;
+      border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px #18314520; }
+    .cover { background: #16404d url("assets/img/hero-1.jpg") center / cover; min-height: 180px; }
+    .content { padding: clamp(24px, 5vw, 48px); }
+    h1 { margin: 16px 0 4px; font-size: 2rem; }
+    p { overflow-wrap: anywhere; }
+    form { display: grid; gap: 18px; }
+    [hidden] { display: none; }
+    label { display: grid; gap: 6px; font-weight: 600; }
+    input, button { font: inherit; border-radius: 9px; padding: 11px 12px; }
+    input { min-width: 0; border: 1px solid #82919d; }
+    button { border: 0; background: #075d61; color: white; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .65; cursor: wait; }
+    a { color: #075d61; }
+    :focus-visible { outline: 3px solid #157c83; outline-offset: 3px; }
+    @media (max-width: 650px) {
+      article { grid-template-columns: 1fr; }
+      main { padding: 16px; }
+    }
+  </style>
+  <script type="module" src="assets/login.js"></script>
+</head>
+<body>
+  <main>
+    <article>
+      <div class="cover"></div>
+      <section class="content" aria-labelledby="login-title">
+        <a href="index.html">JAS Tour &amp; Travels</a>
+        <h1 id="login-title">Login</h1>
+        <p id="status" role="status">Connecting to sign-in…</p>
+        <form id="login-form" method="post" hidden>
+          <label>Email address <input id="email" type="email" autocomplete="username" required></label>
+          <label>Password <input id="password" type="password" autocomplete="current-password" required></label>
+          <button id="login-button" type="submit" disabled>Log in</button>
+        </form>
+        <div id="account" hidden>
+          <p>Signed in as <strong id="account-email"></strong></p>
+          <button id="logout-button" type="button">Sign out</button>
+        </div>
+        <p><a href="contact.html">Contact support</a></p>
+        <noscript>Enable JavaScript to log in.</noscript>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
