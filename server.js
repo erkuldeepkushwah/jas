@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { linkLogin } from './navigation.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,25 +89,6 @@ const pagesWithLogin = [
   '/index.html', '/about.html', '/bus.html', '/contact.html', '/domestic.html',
   '/flight.html', '/international.html', '/train.html', '/Jas/hero.html', '/Jas/contact.html'
 ];
-
-function linkLogin(html) {
-  const hasMainMenu = /<ul id="menu-main-menu"[^>]*>\s*<li\b/.test(html);
-  const desktopMenu = hasMainMenu ? 'menu-main-menu' : 'menu-categories-mega-menu';
-  const menuIds = new Set([desktopMenu, 'menu-mobile-menu', 'menu-mobile-menu-1']);
-  const loginItem = '<li class="menu-item mfn-menu-li"><a href="/login.html" class="mfn-menu-link">' +
-    '<span class="menu-item-helper mfn-menu-item-helper"></span>' +
-    '<span class="label-wrapper mfn-menu-label-wrapper"><span class="menu-label">Login</span></span></a></li>';
-
-  const lists = [];
-  return html.replace(/<ul\b[^>]*>|<\/ul\s*>/gi, (tag) => {
-    if (tag.startsWith('</')) {
-      return (lists.pop() ? loginItem : '') + tag;
-    }
-    const id = tag.match(/\bid="([^"]+)"/)?.[1];
-    lists.push(menuIds.has(id));
-    return tag;
-  }).replace(/href="[^"]+"(\s+title="">)Sign in \/ Sign up/g, 'href="/login.html"$1Login');
-}
 
 app.get(pagesWithLogin, (req, res) => {
   const page = path.join(__dirname, req.path);
