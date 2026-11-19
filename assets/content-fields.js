@@ -1,3 +1,5 @@
+export const previewFields = Symbol.for('jas.website.previewFields');
+
 export const pages = {
   index: 'Home',
   about: 'About Us',
@@ -30,7 +32,7 @@ export function contentFields(doc) {
     if (node.nodeType === 3 && node.data.trim()) {
       const original = node.data;
       fields.push({
-        type: 'Text',
+        type: 'Text', element,
         value: original.trim(),
         reset: () => { node.data = original; },
         apply: (value) => { node.data = original.replace(/\S[\s\S]*\S|\S/, () => value); }
@@ -40,7 +42,7 @@ export function contentFields(doc) {
       const src = element.getAttribute('src');
       const srcset = element.getAttribute('srcset');
       fields.push({
-        type: 'Image URL',
+        type: 'Image URL', element,
         value: src,
         reset: () => {
           element.setAttribute('src', src);
@@ -55,7 +57,7 @@ export function contentFields(doc) {
     if (node.nodeType === 1 && element.matches('a[href]')) {
       const href = element.getAttribute('href');
       if (!href.startsWith('#') && validValue('Link URL', href)) {
-        fields.push({ type: 'Link URL', value: href, reset: () => element.setAttribute('href', href), apply: (value) => element.setAttribute('href', value) });
+        fields.push({ type: 'Link URL', element, value: href, reset: () => element.setAttribute('href', href), apply: (value) => element.setAttribute('href', value) });
       }
     }
   }

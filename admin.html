@@ -28,6 +28,7 @@
       .preview { flex: none; height: 65vh; }
       #editor { flex: none; width: 100%; max-height: none; order: -1; }
     }
+    #fields img { width: 100%; max-height: 160px; object-fit: contain; border-radius: 8px; }
     #fields label { background: white; border-radius: 12px; padding: 12px; }
     :focus-visible { outline: 3px solid #157c83; outline-offset: 3px; }
   </style>
@@ -46,7 +47,7 @@
       <div class="workspace">
         <iframe id="preview" class="preview" title="Website page preview"></iframe>
         <form id="editor" hidden>
-          <label>Find a field <input id="search" type="search" placeholder="Search text, images or links"></label>
+          <p>Click a photo, text or link in the page to edit it.</p>
           <div class="edit-bar">
             <button id="publish" disabled>Publish changes</button>
             <button type="button" id="cancel">Close editor</button>
