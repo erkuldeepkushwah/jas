@@ -1,3 +1,7 @@
+const signin = document.querySelector('#signin');
+const accountTitle = document.querySelector('#account-title');
+const accountStatus = document.querySelector('#account-status');
+const passwordToggle = document.querySelector('#toggle-password');
 const form = document.querySelector('#login-form');
 const email = document.querySelector('#email');
 const password = document.querySelector('#password');
@@ -6,6 +10,12 @@ const logoutButton = document.querySelector('#logout-button');
 const account = document.querySelector('#account');
 const accountEmail = document.querySelector('#account-email');
 const status = document.querySelector('#status');
+
+passwordToggle.addEventListener('click', () => {
+  const visible = password.type === 'password';
+  password.type = visible ? 'text' : 'password';
+  passwordToggle.textContent = visible ? 'Hide' : 'Show';
+});
 
 async function setupLogin() {
   const [{ app, isJasAdmin }, { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }] =
@@ -38,10 +48,12 @@ async function setupLogin() {
 
   logoutButton.addEventListener('click', async () => {
     logoutButton.disabled = true;
+    accountStatus.hidden = true;
     try {
       await signOut(auth);
     } catch {
-      status.textContent = 'Unable to sign out. Please try again.';
+      accountStatus.textContent = 'Unable to sign out. Please try again.';
+      accountStatus.hidden = false;
     } finally {
       logoutButton.disabled = false;
     }
@@ -55,7 +67,13 @@ async function setupLogin() {
       }).catch(() => {});
     }
     form.hidden = Boolean(user);
+    signin.hidden = Boolean(user);
     account.hidden = !user;
+    accountStatus.hidden = true;
+    password.type = 'password';
+    passwordToggle.textContent = 'Show';
+    document.title = (user ? 'Travel Dashboard' : 'Login') + ' | JAS Tour & Travels';
+    if (user) accountTitle.focus();
     accountEmail.textContent = user?.email ?? '';
     loginButton.disabled = false;
     status.textContent = user ? '' : 'Enter your account email and password.';
