@@ -16,6 +16,40 @@ const database = getDatabase(app);
 let current;
 let selectedPage;
 let publishing = false;
+const imageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+const maxPhotoBytes = 8 * 1024 * 1024;
+
+function ratio(width, height) {
+  let a = width;
+  let b = height;
+  while (b) [a, b] = [b, a % b];
+  return width / a + ':' + height / a;
+}
+
+function clearUpload(entry) {
+  if (entry.localUrl) URL.revokeObjectURL(entry.localUrl);
+  entry.file = null;
+  entry.localUrl = null;
+  entry.objectPath = null;
+  entry.uploadedUrl = null;
+}
+
+async function hostedPhoto(entry, page) {
+  if (entry.uploadedUrl) return entry.uploadedUrl;
+  const { getStorage, ref: storageRef, uploadBytes, getDownloadURL, getMetadata } =
+    await import('https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js');
+  entry.objectPath ??= 'jasWebsiteImages/' + page + '/' + crypto.randomUUID();
+  const object = storageRef(getStorage(app), entry.objectPath);
+  // Reuse an object already uploaded if retrieving its URL failed.
+  try {
+    await getMetadata(object);
+  } catch (error) {
+    if (error.code !== 'storage/object-not-found') throw error;
+    await uploadBytes(object, entry.file, { contentType: entry.file.type });
+  }
+  entry.uploadedUrl = await getDownloadURL(object);
+  return entry.uploadedUrl;
+}
 
 for (const [id, label] of Object.entries(pages)) {
   const button = document.createElement('button');
@@ -28,7 +62,7 @@ for (const [id, label] of Object.entries(pages)) {
 
 function canCloseEditor() {
   if (publishing) return false;
-  const hasDraft = current?.entries.some(({ value, saved }) => value !== saved);
+  const hasDraft = current?.entries.some(({ value, saved, file }) => file || value !== saved);
   return !hasDraft || window.confirm('Discard unpublished changes on this page?');
 }
 
@@ -42,11 +76,13 @@ function closeEditor() {
   if (current) {
     current.listeners.abort();
     highlight(current);
-    for (const { field, value, saved } of current.entries) {
-      if (value !== saved) {
+    for (const entry of current.entries) {
+      const { field, value, saved, file } = entry;
+      if (file || value !== saved) {
         if (saved === field.value) field.reset();
         else field.apply(saved);
       }
+      clearUpload(entry);
     }
   }
   current = null;
@@ -115,29 +151,93 @@ function showDetails(state, selection) {
     row.append(input);
     fields.append(row);
 
-    const thumbnail = field.type === 'Image URL' ? document.createElement('img') : null;
-    if (thumbnail) {
-      thumbnail.alt = field.element.alt || 'Selected photo';
-      row.prepend(thumbnail);
-    }
-    function showImage(value) {
-      if (thumbnail && validValue(field.type, value)) {
-        thumbnail.src = new URL(value, state.doc.baseURI).href;
-      }
-    }
-    showImage(entry.value);
+    if (field.type === 'Image URL') addImageControls(state, entry, row, input);
     input.addEventListener('input', () => {
+      clearUpload(entry);
       entry.value = input.value;
       if (entry.value === field.value) field.reset();
       else if (validValue(field.type, entry.value)) field.apply(entry.value);
-      showImage(entry.value);
     });
+
   }
+}
+
+function addImageControls(state, entry, urlRow, urlInput) {
+  const { field } = entry;
+  const thumbnail = document.createElement('img');
+  thumbnail.alt = field.element.alt || 'Selected photo';
+  const dimensions = document.createElement('p');
+  dimensions.className = 'image-dimensions';
+  dimensions.setAttribute('role', 'status');
+  thumbnail.addEventListener('load', () => {
+    const { naturalWidth: width, naturalHeight: height } = thumbnail;
+    dimensions.textContent = width + ' × ' + height + ' px · Aspect ratio ' + ratio(width, height);
+  });
+  thumbnail.addEventListener('error', () => {
+    dimensions.textContent = 'Image size unavailable.';
+  });
+  function showImage(value) {
+    if (validValue(field.type, value)) thumbnail.src = new URL(value, state.doc.baseURI).href;
+  }
+  if (entry.localUrl) thumbnail.src = entry.localUrl;
+  else showImage(entry.value === field.value ? field.element.currentSrc || entry.value : entry.value);
+  urlRow.before(thumbnail, dimensions);
+
+  const uploadRow = document.createElement('label');
+  uploadRow.append('Upload image');
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = imageTypes.join(',');
+  uploadRow.append(picker);
+  const fileStatus = document.createElement('small');
+  fileStatus.setAttribute('role', 'status');
+  uploadRow.append(fileStatus);
+  const fileHint = 'JPEG, PNG, WebP, GIF or AVIF · up to 8 MB';
+  fileStatus.textContent = entry.file?.name ?? fileHint;
+  urlRow.after(uploadRow);
+
+  let selection = 0;
+  urlInput.addEventListener('input', () => {
+    selection++;
+    picker.value = '';
+    fileStatus.textContent = fileHint;
+    showImage(urlInput.value);
+  });
+  picker.addEventListener('change', async () => {
+    const file = picker.files[0];
+    if (!file || publishing) return;
+    const attempt = ++selection;
+    if (!imageTypes.includes(file.type) || file.size === 0 || file.size > maxPhotoBytes) {
+      fileStatus.textContent = 'Choose a supported image up to 8 MB.';
+      picker.value = '';
+      return;
+    }
+    const localUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.src = localUrl;
+    try {
+      await image.decode();
+      if (attempt !== selection || current !== state || publishing || !picker.isConnected) {
+        URL.revokeObjectURL(localUrl);
+        return;
+      }
+      clearUpload(entry);
+      entry.file = file;
+      entry.localUrl = localUrl;
+      thumbnail.src = localUrl;
+      field.apply(localUrl);
+      fileStatus.textContent = file.name + ' · ready to publish';
+    } catch {
+      URL.revokeObjectURL(localUrl);
+      if (attempt === selection) fileStatus.textContent = 'This image could not be opened.';
+    }
+  });
 }
 
 function pickItem(event, state) {
   event.preventDefault();
   event.stopImmediatePropagation();
+  if (publishing) return;
   let element = event.target;
   while (element && element !== state.doc.body) {
     const isCard = element.matches?.('.jas-card, article');
@@ -150,7 +250,8 @@ function pickItem(event, state) {
       const linkDetails = link && link !== element
         ? state.entries.filter(({ field }) => field.element === link)
         : [];
-      showDetails(state, [...selection, ...linkDetails]);
+      state.selection = [...selection, ...linkDetails];
+      showDetails(state, state.selection);
       status.textContent = 'Editing ' + pages[state.page] + '.';
       return;
     }
@@ -204,15 +305,14 @@ editor.addEventListener('submit', async (event) => {
   const edited = [];
   for (const entry of state.entries) {
     const { value } = entry;
-    if (value === entry.saved) continue;
-    if (value !== entry.field.value && !validValue(entry.field.type, value)) {
+    if (!entry.file && value === entry.saved) continue;
+    if (!entry.file && value !== entry.field.value && !validValue(entry.field.type, value)) {
       status.textContent = 'Enter valid ' + entry.field.type.toLowerCase() + ' before publishing.';
       highlight(state, entry.field.element);
       showDetails(state, [entry]);
       fields.querySelector('textarea').focus();
       return;
     }
-    changes[entry.field.key] = value === entry.field.value ? null : value;
     edited.push({ entry, value });
   }
   if (!edited.length) {
@@ -222,15 +322,30 @@ editor.addEventListener('submit', async (event) => {
   publish.disabled = true;
   publishing = true;
   cancel.disabled = true;
+  fields.inert = true;
   try {
+    if (edited.some(({ entry }) => entry.file)) status.textContent = 'Uploading photos…';
+    for (const item of edited) {
+      const { entry } = item;
+      if (entry.file) item.value = await hostedPhoto(entry, state.page);
+      changes[entry.field.key] = item.value === entry.field.value ? null : item.value;
+    }
     await update(ref(database, 'jasWebsiteContent/' + state.page), changes);
-    for (const { entry, value } of edited) entry.saved = value;
+    for (const { entry, value } of edited) {
+      if (entry.file && current === state) entry.field.apply(value);
+      entry.saved = entry.value = value;
+      clearUpload(entry);
+    }
+    if (current === state && state.selection) showDetails(state, state.selection);
     status.textContent = 'Published changes for ' + pages[state.page] + '.';
-  } catch {
-    status.textContent = 'Publish failed. Check your admin access and connection, then try again.';
+  } catch (error) {
+    status.textContent = error.code?.startsWith('storage/')
+      ? 'Photo upload failed. Check Firebase Storage access and try again.'
+      : 'Publish failed. Check Firebase database access and try again.';
   } finally {
     publishing = false;
     cancel.disabled = false;
+    fields.inert = false;
     publish.disabled = !current;
   }
 });
