@@ -7,3 +7,7 @@ export const app = initializeApp({
   projectId: 'brivora-3cf80',
   appId: '1:177366983831:web:c5263d5629565f0d3775d2'
 });
+
+export function isJasAdmin(claims) {
+  return claims?.email_verified === true && claims.email === 'kuldeep@gmail.com';
+}

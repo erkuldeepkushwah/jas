@@ -124,8 +124,8 @@ Realtime Database under `jasWebsiteContent` and take effect without a site deplo
    from `firebase-jas-content.rules.json` to the existing database rules.
    Preserve the other branches. Ensure ancestor rules do not grant broader
    write access to this branch, as Realtime Database rules cascade.
-2. Set `jasAdmin: true` as a Firebase Authentication custom claim on each
-   authorized JAS admin UID through an authorized Firebase Admin SDK environment.
-   Preserve any existing custom claims when updating them.
+2. Confirm that `kuldeep@gmail.com` exists in Firebase Authentication and
+   that its owner has completed email verification. The app and database rules
+   require the verified email on the Firebase ID token.
 3. Sign out and sign back in. Open **Manage website content** from the login page,
    choose a page, and select **Publish changes** after editing.

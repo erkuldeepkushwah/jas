@@ -1,6 +1,6 @@
 import { getAuth, onIdTokenChanged } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
 import { get, getDatabase, ref, update } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js';
-import { app } from './firebase.js';
+import { app, isJasAdmin } from './firebase.js';
 import { contentFields, pages, validValue } from './content-fields.js';
 
 const status = document.querySelector('#status');
@@ -108,7 +108,7 @@ onIdTokenChanged(getAuth(app), async (user) => {
   try {
     const token = user && await user.getIdTokenResult();
     if (check !== accessCheck) return;
-    if (token?.claims.jasAdmin === true) {
+    if (isJasAdmin(token?.claims)) {
       editor.hidden = false;
       if (!current) loadPage();
       return;

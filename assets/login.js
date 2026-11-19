@@ -8,7 +8,7 @@ const accountEmail = document.querySelector('#account-email');
 const status = document.querySelector('#status');
 
 async function setupLogin() {
-  const [{ app }, { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }] =
+  const [{ app, isJasAdmin }, { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }] =
     await Promise.all([
       import('./firebase.js'),
       import('https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js')
@@ -51,7 +51,7 @@ async function setupLogin() {
     adminLink.hidden = true;
     if (user) {
       user.getIdTokenResult().then(({ claims }) => {
-        if (auth.currentUser === user) adminLink.hidden = claims.jasAdmin !== true;
+        if (auth.currentUser === user) adminLink.hidden = !isJasAdmin(claims);
       }).catch(() => {});
     }
     form.hidden = Boolean(user);
