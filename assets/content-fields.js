@@ -39,20 +39,7 @@ export function contentFields(doc) {
       });
     }
     if (node.nodeType === 1 && element.matches('img[src]')) {
-      const src = element.getAttribute('src');
-      const srcset = element.getAttribute('srcset');
-      fields.push({
-        type: 'Image URL', element,
-        value: src,
-        reset: () => {
-          element.setAttribute('src', src);
-          if (srcset !== null) element.setAttribute('srcset', srcset);
-        },
-        apply: (value) => {
-          element.removeAttribute('srcset');
-          element.setAttribute('src', value);
-        }
-      });
+      fields.push(imageField(element));
     }
     if (node.nodeType === 1 && element.matches('a[href]')) {
       const href = element.getAttribute('href');
@@ -61,9 +48,29 @@ export function contentFields(doc) {
       }
     }
   }
+  // Append header images so previously saved content keeps its field keys.
+  for (const image of doc.querySelectorAll('header .logo-wrapper img[src]')) {
+    fields.push(imageField(image));
+  }
   return fields.map((field, index) => ({
     ...field, key: 'f' + index + '_' + fingerprint(field.type + field.value)
   }));
+}
+
+function imageField(element) {
+  const src = element.getAttribute('src');
+  const srcset = element.getAttribute('srcset');
+  return {
+    type: 'Image URL', element, value: src,
+    reset: () => {
+      element.setAttribute('src', src);
+      if (srcset !== null) element.setAttribute('srcset', srcset);
+    },
+    apply: (value) => {
+      element.removeAttribute('srcset');
+      element.setAttribute('src', value);
+    }
+  };
 }
 
 export function validValue(type, value) {

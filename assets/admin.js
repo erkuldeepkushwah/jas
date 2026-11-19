@@ -10,6 +10,7 @@ const pageNav = document.querySelector('#pages');
 const preview = document.querySelector('#preview');
 const edit = document.querySelector('#edit');
 const cancel = document.querySelector('#cancel');
+const photos = document.querySelector('#photos');
 const publish = document.querySelector('#publish');
 const fields = document.querySelector('#fields');
 const database = getDatabase(app);
@@ -234,11 +235,35 @@ function addImageControls(state, entry, urlRow, urlInput) {
   });
 }
 
+function selectImages(state, selection, marked) {
+  highlight(state, marked);
+  state.selection = selection;
+  showDetails(state, selection);
+}
+
+photos.addEventListener('click', () => {
+  if (!current || publishing) return;
+  const selection = current.entries.filter(({ field }) => field.type === 'Image URL');
+  selectImages(current, selection);
+  status.textContent = selection.length
+    ? selection.length + ' images on ' + pages[current.page] + '.'
+    : 'This page has no editable images.';
+});
+
 function pickItem(event, state) {
   event.preventDefault();
   event.stopImmediatePropagation();
   if (publishing) return;
   let element = event.target;
+  const hero = element.closest?.('#jas-hero, #jas-page-head');
+  const heroImage = hero?.querySelector('.jas-hero-img, .jas-ph-img');
+  const banner = heroImage && state.entries.find(({ field }) => field.element === heroImage);
+  const direct = state.entries.some(({ field }) => field.element === element);
+  if (banner && !direct && !element.closest('a, button')) {
+    selectImages(state, [banner], hero);
+    status.textContent = 'Editing the ' + pages[state.page] + ' banner photo.';
+    return;
+  }
   while (element && element !== state.doc.body) {
     const isCard = element.matches?.('.jas-card, article');
     const selection = state.entries.filter(({ field }) =>
@@ -251,6 +276,7 @@ function pickItem(event, state) {
         ? state.entries.filter(({ field }) => field.element === link)
         : [];
       state.selection = [...selection, ...linkDetails];
+      if (banner && !state.selection.includes(banner)) state.selection.unshift(banner);
       showDetails(state, state.selection);
       status.textContent = 'Editing ' + pages[state.page] + '.';
       return;
@@ -268,11 +294,15 @@ async function loadPage(page) {
     return;
   }
   const editable = doc[previewFields];
-  const state = { page, doc, listeners: new AbortController(), entries: [] };
+  const entries = editable.map((field) => {
+    const saved = field.type === 'Image URL' ? field.element.getAttribute('src') ?? field.value : field.value;
+    return { field, saved, value: saved };
+  });
+  const state = { page, doc, listeners: new AbortController(), entries };
   current = state;
   fields.replaceChildren();
   publish.disabled = true;
-  status.textContent = 'Loading ' + pages[page] + '…';
+  status.textContent = 'Click an item in ' + pages[page] + ' to edit it.';
   doc.addEventListener('click', (event) => pickItem(event, state), {
     capture: true, signal: state.listeners.signal
   });
@@ -286,14 +316,17 @@ async function loadPage(page) {
     const snapshot = await get(ref(database, 'jasWebsiteContent/' + page));
     if (current !== state) return;
     const overrides = snapshot.val() ?? {};
-    state.entries = editable.map((field) => {
+    for (const entry of entries) {
+      if (entry.file || entry.value !== entry.saved) continue;
+      const { field } = entry;
       const saved = validValue(field.type, overrides[field.key]) ? overrides[field.key] : field.value;
-      return { field, saved, value: saved };
-    });
+      entry.saved = entry.value = saved;
+    }
+    if (state.selection && !fields.contains(document.activeElement)) showDetails(state, state.selection);
     publish.disabled = false;
     status.textContent = 'Click an item in ' + pages[page] + ' to edit it.';
   } catch {
-    if (current === state) status.textContent = 'Could not load editable content. Check the Firebase database settings.';
+    if (current === state) status.textContent = 'Photo previews and sizes are available. Publishing requires Firebase database access.';
   }
 }
 
