@@ -128,3 +128,8 @@ Realtime Database under `jasWebsiteContent` and take effect without a site deplo
    Firebase UID (`ydJDSUYmJoWeww9rfrboUQkfnPv1`). Email verification is optional.
 3. Sign out and sign back in. Open **Manage website content** from the login page,
    choose a page, and select **Publish changes** after editing.
+
+For photo uploads, enable Cloud Storage on the configured Firebase project and
+merge the `jasWebsiteImages` match from `firebase-jas-storage.rules` into its
+existing Storage rules. The JAS admin can upload JPEG, PNG, WebP, GIF and AVIF
+files up to 8 MB. The selected image previews before it is uploaded on publish.
