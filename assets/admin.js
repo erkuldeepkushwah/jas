@@ -5,14 +5,86 @@ import { contentFields, pages, validValue } from './content-fields.js';
 
 const status = document.querySelector('#status');
 const editor = document.querySelector('#editor');
-const pageSelect = document.querySelector('#page');
+const workspace = document.querySelector('#workspace');
+const pageNav = document.querySelector('#pages');
+const preview = document.querySelector('#preview');
+const edit = document.querySelector('#edit');
+const cancel = document.querySelector('#cancel');
 const search = document.querySelector('#search');
 const publish = document.querySelector('#publish');
 const fields = document.querySelector('#fields');
 const database = getDatabase(app);
 let current;
+let selectedPage;
+let publishing = false;
 
-for (const [id, label] of Object.entries(pages)) pageSelect.add(new Option(label, id));
+for (const [id, label] of Object.entries(pages)) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.page = id;
+  button.textContent = label;
+  button.addEventListener('click', () => selectPage(id));
+  pageNav.append(button);
+}
+
+function canCloseEditor() {
+  if (publishing) return false;
+  const hasDraft = current?.entries.some(({ input, saved }) => input.value !== saved);
+  return !hasDraft || window.confirm('Discard unpublished changes on this page?');
+}
+
+function closeEditor() {
+  current = null;
+  editor.hidden = true;
+  fields.replaceChildren();
+  edit.setAttribute('aria-expanded', 'false');
+}
+
+function selectPage(page, alreadyLoaded = false) {
+  if (page === selectedPage || !canCloseEditor()) return;
+  closeEditor();
+  selectedPage = page;
+  for (const button of pageNav.children) {
+    if (button.dataset.page === page) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  }
+  preview.title = pages[page] + ' website preview';
+  if (!alreadyLoaded) preview.src = page + '.html';
+  status.textContent = 'Viewing ' + pages[page] + '.';
+}
+
+preview.addEventListener('load', () => {
+  if (workspace.hidden) return;
+  try {
+    const url = new URL(preview.contentWindow.location.href);
+    const page = url.pathname.split('/').pop().replace(/\.html$/, '') || 'index';
+    if (!Object.hasOwn(pages, page) || url.origin !== location.origin) {
+      edit.disabled = true;
+      return;
+    }
+    if (page !== selectedPage) {
+      selectPage(page, true);
+      if (page !== selectedPage) preview.src = selectedPage + '.html';
+    }
+    edit.disabled = false;
+  } catch {
+    edit.disabled = true;
+  }
+});
+
+edit.addEventListener('click', () => {
+  if (!selectedPage || !editor.hidden) return;
+  editor.hidden = false;
+  edit.setAttribute('aria-expanded', 'true');
+  loadPage(selectedPage);
+  search.focus();
+});
+cancel.addEventListener('click', () => {
+  if (!canCloseEditor()) return;
+  closeEditor();
+  status.textContent = 'Viewing ' + pages[selectedPage] + '.';
+  edit.focus();
+});
 
 function filter() {
   const query = search.value.trim().toLowerCase();
@@ -21,8 +93,7 @@ function filter() {
   }
 }
 
-async function loadPage() {
-  const page = pageSelect.value;
+async function loadPage(page) {
   const state = { page, entries: [] };
   current = state;
   fields.replaceChildren();
@@ -55,14 +126,6 @@ async function loadPage() {
   }
 }
 
-pageSelect.addEventListener('change', () => {
-  if (current?.entries.some(({ input, saved }) => input.value !== saved) &&
-      !window.confirm('Discard unpublished changes on this page?')) {
-    pageSelect.value = current.page;
-    return;
-  }
-  loadPage();
-});
 search.addEventListener('input', filter);
 
 editor.addEventListener('submit', async (event) => {
@@ -89,7 +152,8 @@ editor.addEventListener('submit', async (event) => {
     return;
   }
   publish.disabled = true;
-  pageSelect.disabled = true;
+  publishing = true;
+  cancel.disabled = true;
   try {
     await update(ref(database, 'jasWebsiteContent/' + state.page), changes);
     for (const { entry, value } of edited) entry.saved = value;
@@ -97,7 +161,8 @@ editor.addEventListener('submit', async (event) => {
   } catch {
     status.textContent = 'Publish failed. Check your admin access and connection, then try again.';
   } finally {
-    pageSelect.disabled = false;
+    publishing = false;
+    cancel.disabled = false;
     publish.disabled = !current;
   }
 });
@@ -109,8 +174,8 @@ onIdTokenChanged(getAuth(app), async (user) => {
     const token = user && await user.getIdTokenResult();
     if (check !== accessCheck) return;
     if (isJasAdmin(token?.claims)) {
-      editor.hidden = false;
-      if (!current) loadPage();
+      workspace.hidden = false;
+      if (!selectedPage) selectPage('index');
       return;
     }
     status.textContent = user ? 'This account does not have JAS admin access.' : 'Log in with your JAS admin account.';
@@ -118,7 +183,8 @@ onIdTokenChanged(getAuth(app), async (user) => {
     if (check !== accessCheck) return;
     status.textContent = 'Could not verify admin access. Reload the page to try again.';
   }
-  editor.hidden = true;
-  current = null;
-  fields.replaceChildren();
+  workspace.hidden = true;
+  closeEditor();
+  selectedPage = null;
+  preview.removeAttribute('src');
 });
