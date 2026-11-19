@@ -5,53 +5,130 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login | JAS Tour &amp; Travels</title>
   <style>
+    :root { --navy: #0b1736; --blue: #2563eb; --ink: #16233d; --muted: #53627a; --line: #dae3ef; }
     * { box-sizing: border-box; }
-    body { margin: 0; font: 1rem/1.5 system-ui, sans-serif; color: #172436; background: #edf3f5; }
-    main { min-height: 100svh; display: grid; place-items: center; padding: 24px; }
-    article { width: min(100%, 850px); display: grid; grid-template-columns: 1fr 1fr; background: #fff;
-      border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px #18314520; }
-    .cover { background: #16404d url("assets/img/hero-1.jpg") center / cover; min-height: 180px; }
-    .content { padding: clamp(24px, 5vw, 48px); }
-    h1 { margin: 16px 0 4px; font-size: 2rem; }
-    p { overflow-wrap: anywhere; }
-    form { display: grid; gap: 18px; }
-    [hidden] { display: none; }
-    label { display: grid; gap: 6px; font-weight: 600; }
-    input, button { font: inherit; border-radius: 9px; padding: 11px 12px; }
-    input { min-width: 0; border: 1px solid #82919d; }
-    button { border: 0; background: #075d61; color: white; font-weight: 700; cursor: pointer; }
+    [hidden] { display: none !important; }
+    body { margin: 0; font: 1rem/1.5 Inter, system-ui, sans-serif; color: var(--ink); background: #f4f7fc; }
+    h1, h2, p { margin: 0; }
+    a { color: #1d4ed8; text-underline-offset: 3px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
     button:disabled { opacity: .65; cursor: wait; }
-    a { color: #075d61; }
-    :focus-visible { outline: 3px solid #157c83; outline-offset: 3px; }
-    @media (max-width: 650px) {
-      article { grid-template-columns: 1fr; }
-      main { padding: 16px; }
+    :focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+    .signin { min-height: 100svh; display: grid; place-items: center; padding: 24px; }
+    .signin-card { width: min(100%, 920px); display: grid; grid-template-columns: .95fr 1fr; background: white;
+      border: 1px solid var(--line); border-radius: 22px; overflow: hidden; box-shadow: 0 22px 64px #0b173617; }
+    .brand-panel { padding: clamp(24px, 5vw, 56px); background: radial-gradient(ellipse at bottom right, #224caa, transparent 70%), var(--navy);
+      color: white; display: flex; flex-direction: column; justify-content: space-between; gap: 50px; }
+    .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; font-weight: 750; }
+    .brand-logo { width: 58px; height: 48px; padding: 4px; object-fit: contain; background: white; border-radius: 10px; flex: none; }
+    .brand-panel h2 { font-size: clamp(1.65rem, 3vw, 2.3rem); line-height: 1.15; margin-bottom: 12px; }
+    .brand-panel p { color: #d8e5ff; }
+    .login-content { padding: clamp(24px, 5vw, 56px); }
+    .login-content h1, .account-main h1 { font-size: clamp(1.85rem, 4vw, 2.35rem); letter-spacing: -.035em; }
+    .login-content p { margin: 8px 0 16px; color: var(--muted); }
+    #status { min-height: 24px; }
+    form { display: grid; gap: 16px; }
+    label { display: grid; gap: 6px; font-weight: 650; }
+    input { min-width: 0; width: 100%; padding: 11px 12px; border: 1px solid #aab7cc; border-radius: 9px; }
+    .password-line { display: flex; align-items: center; gap: 8px; }
+    .password-line button { flex: none; padding: 10px; }
+    .primary, .secondary { border-radius: 9px; padding: 11px 14px; font-weight: 700; }
+    .primary { border: 1px solid var(--blue); background: var(--blue); color: white; }
+    .secondary { border: 1px solid var(--line); background: white; color: var(--ink); }
+    .login-links { margin-top: 20px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .account { min-height: 100svh; display: grid; grid-template-columns: 245px minmax(0, 1fr); }
+    .sidebar { position: sticky; top: 0; align-self: start; min-height: 100svh; padding: 24px 18px; background: var(--navy); color: white; }
+    .sidebar nav { margin-top: 32px; display: grid; gap: 5px; }
+    .sidebar nav a { color: #e0e9fb; text-decoration: none; padding: 9px 12px; border-radius: 8px; }
+    .sidebar nav a:hover, .sidebar nav a[aria-current] { background: #213963; color: white; }
+    .account-header { background: white; padding: 14px clamp(16px, 3.5vw, 38px); border-bottom: 1px solid var(--line); display: flex;
+      align-items: center; justify-content: space-between; gap: 12px; }
+    .account-header p { color: var(--muted); overflow-wrap: anywhere; }
+    .account-main { padding: clamp(18px, 4vw, 44px); max-width: 1160px; }
+    .account-main > p { color: var(--muted); margin: 6px 0 24px; }
+    .services { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .service { display: flex; flex-direction: column; align-items: start; gap: 6px; text-decoration: none; color: var(--ink);
+      background: white; border: 1px solid var(--line); border-radius: 13px; padding: 18px; }
+    .service:hover { border-color: var(--blue); }
+    .service span { color: var(--muted); font-size: .9rem; }
+    .service strong { color: #1d4ed8; }
+    #account-status { color: #9f1239; }
+    @media (max-width: 900px) { .services { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 660px) {
+      .signin { padding: 14px; } .signin-card, .account { grid-template-columns: minmax(0, 1fr); }
+      .brand-panel { gap: 18px; } .brand-panel h2 { font-size: 1.45rem; } .sidebar { position: static; min-height: auto; }
+      .sidebar nav { display: flex; overflow: auto; margin-top: 12px; } .sidebar nav a { flex: none; }
     }
+    @media (max-width: 390px) { .services { grid-template-columns: minmax(0, 1fr); } }
   </style>
   <script type="module" src="assets/login.js"></script>
 </head>
 <body>
-  <main>
-    <article>
-      <div class="cover"></div>
-      <section class="content" aria-labelledby="login-title">
-        <a href="index.html">JAS Tour &amp; Travels</a>
+  <main id="signin" class="signin">
+    <article class="signin-card">
+      <div class="brand-panel">
+        <a class="brand" href="index.html"><img class="brand-logo" src="assets/img/logo.png" alt="" width="58" height="48">JAS Tour &amp; Travels</a>
+        <div>
+          <h2>Travel services in one place</h2>
+          <p>Browse holiday packages, booking services and travel support from your JAS account.</p>
+        </div>
+      </div>
+      <section class="login-content" aria-labelledby="login-title">
         <h1 id="login-title">Login</h1>
         <p id="status" role="status">Connecting to sign-in…</p>
         <form id="login-form" method="post" hidden>
-          <label>Email address <input id="email" type="email" autocomplete="username" required></label>
-          <label>Password <input id="password" type="password" autocomplete="current-password" required></label>
-          <button id="login-button" type="submit" disabled>Log in</button>
+          <label for="email">Email address
+            <input id="email" type="email" autocomplete="username" required>
+          </label>
+          <div>
+            <label for="password">Password</label>
+            <div class="password-line">
+              <input id="password" type="password" autocomplete="current-password" required>
+              <button class="secondary" id="toggle-password" type="button" aria-controls="password">Show</button>
+            </div>
+          </div>
+          <button class="primary" id="login-button" type="submit" disabled>Log in</button>
         </form>
-        <div id="account" hidden>
-          <p>Signed in as <strong id="account-email"></strong></p>
-          <p><a id="admin-link" href="admin.html" hidden>Manage website content</a></p>
-          <button id="logout-button" type="button">Sign out</button>
-        </div>
-        <p><a href="contact.html">Contact support</a></p>
+        <div class="login-links"><a href="index.html">Back to website</a><a href="contact.html">Contact support</a></div>
         <noscript>Enable JavaScript to log in.</noscript>
       </section>
     </article>
   </main>
+
+  <div id="account" class="account" hidden>
+    <aside class="sidebar">
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/img/logo.png" alt="" width="58" height="48">JAS Tour &amp; Travels</a>
+      <nav aria-label="Account menu">
+        <a href="login.html" aria-current="page">Dashboard</a>
+        <a href="flight.html">Flight Booking</a>
+        <a href="train.html">Train Booking</a>
+        <a href="bus.html">Bus Booking</a>
+        <a href="domestic.html">Domestic Holidays</a>
+        <a href="international.html">International Holidays</a>
+        <a href="contact.html">Contact Support</a>
+        <a id="admin-link" href="admin.html" hidden>Manage Website</a>
+      </nav>
+    </aside>
+    <div>
+      <header class="account-header">
+        <p id="account-email"></p>
+        <button class="secondary" id="logout-button" type="button">Sign out</button>
+      </header>
+      <main class="account-main">
+        <h1 id="account-title" tabindex="-1">Travel dashboard</h1>
+        <p>Choose a service to plan your next trip.</p>
+        <p id="account-status" role="status" hidden></p>
+        <div class="services">
+          <a class="service" href="flight.html"><strong>Flight Booking</strong><span>Domestic and international flight enquiries</span></a>
+          <a class="service" href="train.html"><strong>Train Booking</strong><span>Rail ticket and reservation assistance</span></a>
+          <a class="service" href="bus.html"><strong>Bus Booking</strong><span>Intercity bus and coach enquiries</span></a>
+          <a class="service" href="domestic.html"><strong>Domestic Holidays</strong><span>Explore destinations across India</span></a>
+          <a class="service" href="international.html"><strong>International Holidays</strong><span>Explore overseas holiday packages</span></a>
+          <a class="service" href="contact.html"><strong>Contact Support</strong><span>Get help from the JAS travel desk</span></a>
+        </div>
+      </main>
+    </div>
+  </div>
 </body>
 </html>
