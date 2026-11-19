@@ -83,6 +83,21 @@ function transformHtml(filePath, isContact = false) {
   return content;
 }
 
+// Point the existing desktop and mobile account links at Firebase login.
+const pagesWithLogin = [
+  '/index.html', '/about.html', '/bus.html', '/contact.html', '/domestic.html',
+  '/flight.html', '/international.html', '/train.html', '/Jas/hero.html', '/Jas/contact.html'
+];
+
+function linkLogin(html) {
+  return html.replace(/href="[^"]+"(\s+title="">)Sign in \/ Sign up/g, 'href="/login.html"$1Login');
+}
+
+app.get(pagesWithLogin, (req, res) => {
+  const page = path.join(__dirname, req.path);
+  res.send(linkLogin(fs.readFileSync(page, 'utf8')));
+});
+
 // Serve static images and assets from Jas and root
 app.use('/Jas', express.static(path.join(__dirname, 'Jas')));
 app.use(express.static(__dirname, { index: false }));
@@ -90,12 +105,12 @@ app.use(express.static(__dirname, { index: false }));
 // Routes
 app.get(['/', '/index.html', '/hero.html', '/Jas/hero.html', '/be/paintstore/'], (req, res) => {
   const heroPath = path.join(__dirname, 'Jas', 'hero.html');
-  res.send(transformHtml(heroPath, false));
+  res.send(linkLogin(transformHtml(heroPath, false)));
 });
 
 app.get(['/contact', '/contact.html', '/contact-us', '/contact-us/', '/Jas/contact.html', '/be/paintstore/contact-us/'], (req, res) => {
   const contactPath = path.join(__dirname, 'Jas', 'contact.html');
-  res.send(transformHtml(contactPath, true));
+  res.send(linkLogin(transformHtml(contactPath, true)));
 });
 
 // Contact form POST handler
@@ -110,7 +125,7 @@ app.post(['/contact-submit', '/be/paintstore/*', '/Jas/contact.html', '/contact.
 app.use((req, res) => {
   const heroPath = path.join(__dirname, 'Jas', 'hero.html');
   if (fs.existsSync(heroPath)) {
-    res.send(transformHtml(heroPath, false));
+    res.send(linkLogin(transformHtml(heroPath, false)));
   } else {
     res.status(404).send('Page not found');
   }
