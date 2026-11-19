@@ -9,5 +9,5 @@ export const app = initializeApp({
 });
 
 export function isJasAdmin(claims) {
-  return claims?.email_verified === true && claims.email === 'kuldeep@gmail.com';
+  return claims?.sub === 'ydJDSUYmJoWeww9rfrboUQkfnPv1';
 }
