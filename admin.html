@@ -5,57 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Website Content | JAS Admin</title>
   <style>
+    :root { --blue: #0061ac; --deep: #074779; --gold: #ffcc00; --ink: #163653; --line: #d4e2ee; }
     * { box-sizing: border-box; }
-    body { margin: 0; background: #edf3f5; color: #172436; font: 1rem/1.5 system-ui, sans-serif; }
-    main { max-width: 1600px; margin: 0 auto; padding: 24px; }
-    nav { display: flex; gap: 16px; flex-wrap: wrap; }
-    a { color: #075d61; }
-    h1 { margin-bottom: 8px; }
-    label { display: grid; gap: 6px; margin: 12px 0; font-weight: 600; }
-    input, select, textarea, button { font: inherit; padding: 10px; border: 1px solid #82919d; border-radius: 8px; }
-    textarea { width: 100%; resize: vertical; }
-    button { background: #075d61; color: white; cursor: pointer; }
-    button:disabled { opacity: .6; cursor: wait; }
-    .workspace { display: flex; gap: 16px; align-items: flex-start; }
-    .preview { flex: 1; min-width: 0; width: 100%; height: 78vh; border: 1px solid #82919d; border-radius: 12px; background: white; }
-    .page-bar, .edit-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-    .page-bar button[aria-current="page"] { background: #172436; }
-    #edit { margin-inline-start: auto; }
-    #editor { flex: 0 1 380px; min-width: 0; max-height: 78vh; overflow: auto; }
     [hidden] { display: none !important; }
-    @media (max-width: 850px) {
-      .workspace { flex-direction: column; }
-      .preview { flex: none; height: 65vh; }
-      #editor { flex: none; width: 100%; max-height: none; order: -1; }
-    }
+    body { margin: 0; background: #f1f7fc; color: var(--ink); font: 1rem/1.5 system-ui, sans-serif; }
+    a { color: var(--blue); }
+    h1, h2, p { margin: 0; }
+    h1 { font-size: clamp(1.4rem, 3vw, 1.9rem); }
+    h2 { font-size: 1.08rem; }
+    .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 12px clamp(12px, 2.3vw, 26px); background: white; border-bottom: 3px solid var(--gold); }
+    .brand { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; font-weight: 750; }
+    .brand img { object-fit: contain; }
+    .top nav { display: flex; gap: 16px; }
+    #workspace { display: grid; grid-template-columns: 205px minmax(0, 1fr); min-height: calc(100svh - 65px); }
+    .sidebar { background: var(--deep); color: white; padding: 18px 12px; }
+    .sidebar h2 { margin: 0 0 14px 10px; }
+    #pages { display: grid; gap: 5px; }
+    #pages button { text-align: left; background: transparent; border-color: transparent; font-weight: 600; white-space: nowrap; }
+    #pages button:hover { background: #ffffff24; }
+    #pages button[aria-current="page"] { background: var(--gold); color: #253042; }
+    .main-panel { padding: clamp(12px, 2vw, 24px); min-width: 0; }
+    .page-bar, .edit-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    #edit { margin-inline-start: auto; }
+    #edit[aria-expanded="true"] { background: var(--gold); color: #253042; border-color: var(--gold); }
+    .status { margin: 10px clamp(12px, 2.3vw, 26px); color: #45627e; }
+    .workspace { display: flex; gap: 12px; align-items: flex-start; }
+    .preview { flex: 1; min-width: 0; width: 100%; height: 76vh; border: 1px solid var(--line); border-radius: 12px; background: white; }
+    #editor { flex: 0 1 350px; min-width: 0; max-height: 76vh; overflow: auto; padding: 14px;
+      background: white; border: 1px solid var(--line); border-radius: 12px; }
+    #editor > p { margin: 6px 0 12px; color: #45627e; }
+    label { display: grid; gap: 6px; margin: 10px 0; font-weight: 600; }
+    input, textarea, button { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+    input { min-width: 0; width: 100%; }
+    textarea { width: 100%; resize: vertical; }
+    button { background: var(--blue); color: white; cursor: pointer; }
+    button:disabled { opacity: .65; cursor: default; }
+    #cancel { color: var(--blue); background: white; }
     #fields img { width: 100%; max-height: 160px; object-fit: contain; border-radius: 8px; }
-    .image-dimensions { color: #445469; margin: 4px 0 12px; }
-    #fields label { background: white; border-radius: 12px; padding: 12px; }
-    :focus-visible { outline: 3px solid #157c83; outline-offset: 3px; }
+    .image-dimensions { color: #45627e; margin: 4px 0 12px; }
+    #fields label { background: #f1f7fc; border-radius: 10px; padding: 10px; }
+    :focus-visible { outline: 3px solid #dc9e00; outline-offset: 3px; }
+    @media (max-width: 1050px) {
+      .workspace { flex-direction: column; }
+      .preview { flex: none; height: 62vh; }
+      #editor { flex: none; width: 100%; max-height: 42vh; order: -1; }
+    }
+    @media (max-width: 680px) {
+      #workspace { grid-template-columns: minmax(0, 1fr); }
+      .sidebar { min-width: 0; padding: 10px; }
+      .sidebar h2 { margin: 0 0 7px; }
+      #pages { display: flex; overflow-x: auto; }
+      #pages button { flex: none; }
+    }
   </style>
   <script type="module" src="assets/admin.js"></script>
 </head>
 <body>
-  <main>
+  <header class="top">
+    <a href="index.html" class="brand"><img src="assets/img/logo.png" alt="" width="53" height="42">JAS Tour &amp; Travels</a>
     <nav aria-label="Admin navigation"><a href="index.html">Website</a><a href="login.html">Account</a></nav>
-    <h1>Website content</h1>
-    <p id="status" role="status">Checking admin access…</p>
+  </header>
+  <main>
+    <p id="status" class="status" role="status">Checking admin access…</p>
     <section id="workspace" hidden>
-      <div class="page-bar">
+      <aside class="sidebar">
+        <h2>Website pages</h2>
         <nav id="pages" aria-label="Website pages"></nav>
-        <button type="button" id="edit" aria-expanded="false" aria-controls="editor">Edit</button>
-      </div>
-      <div class="workspace">
-        <iframe id="preview" class="preview" title="Website page preview"></iframe>
-        <form id="editor" hidden>
-          <p>Click a photo, text or link in the page to edit it.</p>
-          <div class="edit-bar">
-            <button type="button" id="photos">All page photos</button>
-            <button id="publish" disabled>Publish changes</button>
-            <button type="button" id="cancel">Close editor</button>
-          </div>
-          <div id="fields"></div>
-        </form>
+      </aside>
+      <div class="main-panel">
+        <div class="page-bar">
+          <h1 id="page-title">Website content</h1>
+          <button type="button" id="edit" aria-expanded="false" aria-controls="editor">Edit</button>
+        </div>
+        <div class="workspace">
+          <iframe id="preview" class="preview" title="Website page preview"></iframe>
+          <form id="editor" hidden>
+            <h2>Selected item details</h2>
+            <p>Click a photo, text or link in the page to edit it.</p>
+            <div class="edit-bar">
+              <button type="button" id="photos">All page photos</button>
+              <button id="publish" disabled>Publish changes</button>
+              <button type="button" id="cancel">Close editor</button>
+            </div>
+            <div id="fields"></div>
+          </form>
+        </div>
       </div>
     </section>
   </main>
