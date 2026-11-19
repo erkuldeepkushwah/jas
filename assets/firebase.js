@@ -5,6 +5,7 @@ export const app = initializeApp({
   authDomain: 'brivora-3cf80.firebaseapp.com',
   databaseURL: 'https://brivora-3cf80-default-rtdb.firebaseio.com',
   projectId: 'brivora-3cf80',
+  storageBucket: 'brivora-3cf80.firebasestorage.app',
   appId: '1:177366983831:web:c5263d5629565f0d3775d2'
 });
 
