@@ -26,6 +26,16 @@ async function setupLogin() {
 
   const auth = getAuth(app);
   const adminLink = document.querySelector('#admin-link');
+  const adminOnly = [adminLink, document.querySelector('#admin-home'), document.querySelector('#admin-about')];
+  const pageLinks = document.querySelectorAll('[data-admin-page]');
+
+  function setAdminNavigation(isAdmin) {
+    for (const link of adminOnly) link.hidden = !isAdmin;
+    for (const link of pageLinks) {
+      const page = link.dataset.adminPage;
+      link.href = isAdmin ? 'admin.html?page=' + encodeURIComponent(page) : page + '.html';
+    }
+  }
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -60,10 +70,10 @@ async function setupLogin() {
   });
 
   onAuthStateChanged(auth, (user) => {
-    adminLink.hidden = true;
+    setAdminNavigation(false);
     if (user) {
       user.getIdTokenResult().then(({ claims }) => {
-        if (auth.currentUser === user) adminLink.hidden = !isJasAdmin(claims);
+        if (auth.currentUser === user) setAdminNavigation(isJasAdmin(claims));
       }).catch(() => {});
     }
     form.hidden = Boolean(user);
