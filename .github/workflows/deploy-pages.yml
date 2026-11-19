@@ -27,16 +27,17 @@ jobs:
       - name: Assemble static site
         run: |
           mkdir -p _site
-          cp index.html contact.html domestic.html international.html flight.html train.html bus.html about.html login.html _site/
+          cp index.html contact.html domestic.html international.html flight.html train.html bus.html about.html login.html admin.html _site/
           cp -r assets _site/
           node --input-type=module <<'JS'
           import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
           import { linkLogin } from './navigation.js';
 
           for (const file of readdirSync('_site')) {
-            if (!file.endsWith('.html') || file === 'login.html') continue;
+            if (!file.endsWith('.html') || ['login.html', 'admin.html'].includes(file)) continue;
             const path = '_site/' + file;
-            writeFileSync(path, linkLogin(readFileSync(path, 'utf8'), 'login.html'));
+            const html = linkLogin(readFileSync(path, 'utf8'), 'login.html');
+            writeFileSync(path, html.replace(/<\/body>/i, '<script type="module" src="assets/content.js"></script></body>'));
           }
           JS
           # Jas/ holds raw theme copies; not part of the published site

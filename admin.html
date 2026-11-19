@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Website Content | JAS Admin</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #edf3f5; color: #172436; font: 1rem/1.5 system-ui, sans-serif; }
+    main { max-width: 850px; margin: 0 auto; padding: 24px; }
+    nav { display: flex; gap: 16px; flex-wrap: wrap; }
+    a { color: #075d61; }
+    h1 { margin-bottom: 8px; }
+    label { display: grid; gap: 6px; margin: 12px 0; font-weight: 600; }
+    input, select, textarea, button { font: inherit; padding: 10px; border: 1px solid #82919d; border-radius: 8px; }
+    textarea { width: 100%; resize: vertical; }
+    button { background: #075d61; color: white; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    #fields label { background: white; border-radius: 12px; padding: 12px; }
+    :focus-visible { outline: 3px solid #157c83; outline-offset: 3px; }
+  </style>
+  <script type="module" src="assets/admin.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Admin navigation"><a href="index.html">Website</a><a href="login.html">Account</a></nav>
+    <h1>Website content</h1>
+    <p id="status" role="status">Checking admin access…</p>
+    <form id="editor" hidden>
+      <label>Page <select id="page"></select></label>
+      <label>Find a field <input id="search" type="search" placeholder="Search by text, image URL or link"></label>
+      <button id="publish" disabled>Publish changes</button>
+      <div id="fields"></div>
+    </form>
+  </main>
+</body>
+</html>

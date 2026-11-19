@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "jasWebsiteContent": {
+      "$page": {
+        ".read": "$page.matches(/^(index|about|flight|train|bus|domestic|international|contact)$/)",
+        "$field": {
+          ".write": "auth != null && auth.token.jasAdmin === true && $page.matches(/^(index|about|flight|train|bus|domestic|international|contact)$/) && $field.matches(/^f[0-9]+_[a-z0-9]+$/)",
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 4000"
+        }
+      }
+    }
+  }
+}

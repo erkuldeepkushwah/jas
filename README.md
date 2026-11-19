@@ -113,3 +113,19 @@ Photographs are from Wikimedia Commons under CC BY and CC BY-SA licences, plus i
 ---
 
 © 2026 JAS Tour & Travels. All rights reserved.
+
+## JAS content editor
+
+The admin page edits the existing text, image URLs, and links in the content and
+footer of the eight public pages. Published changes are stored in Firebase
+Realtime Database under `jasWebsiteContent` and take effect without a site deploy.
+
+1. In the `brivora-3cf80` Firebase project, add the `jasWebsiteContent` rules
+   from `firebase-jas-content.rules.json` to the existing database rules.
+   Preserve the other branches. Ensure ancestor rules do not grant broader
+   write access to this branch, as Realtime Database rules cascade.
+2. Set `jasAdmin: true` as a Firebase Authentication custom claim on each
+   authorized JAS admin UID through an authorized Firebase Admin SDK environment.
+   Preserve any existing custom claims when updating them.
+3. Sign out and sign back in. Open **Manage website content** from the login page,
+   choose a page, and select **Publish changes** after editing.
