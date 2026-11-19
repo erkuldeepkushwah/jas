@@ -4,7 +4,7 @@
       "$page": {
         ".read": "$page.matches(/^(index|about|flight|train|bus|domestic|international|contact)$/)",
         "$field": {
-          ".write": "auth != null && auth.token.email_verified === true && auth.token.email === 'kuldeep@gmail.com' && $page.matches(/^(index|about|flight|train|bus|domestic|international|contact)$/) && $field.matches(/^f[0-9]+_[a-z0-9]+$/)",
+          ".write": "auth != null && auth.uid === 'ydJDSUYmJoWeww9rfrboUQkfnPv1' && $page.matches(/^(index|about|flight|train|bus|domestic|international|contact)$/) && $field.matches(/^f[0-9]+_[a-z0-9]+$/)",
           ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 4000"
         }
       }
