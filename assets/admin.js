@@ -7,6 +7,8 @@ const status = document.querySelector('#status');
 const editor = document.querySelector('#editor');
 const workspace = document.querySelector('#workspace');
 const pageNav = document.querySelector('#pages');
+const pageTitle = document.querySelector('#page-title');
+const requestedPage = new URLSearchParams(location.search).get('page');
 const preview = document.querySelector('#preview');
 const edit = document.querySelector('#edit');
 const cancel = document.querySelector('#cancel');
@@ -17,6 +19,7 @@ const database = getDatabase(app);
 let current;
 let selectedPage;
 let publishing = false;
+let keepEditing = false;
 const imageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 const maxPhotoBytes = 8 * 1024 * 1024;
 
@@ -90,12 +93,14 @@ function closeEditor() {
   editor.hidden = true;
   fields.replaceChildren();
   edit.setAttribute('aria-expanded', 'false');
+  edit.textContent = 'Edit';
 }
 
 function selectPage(page, alreadyLoaded = false) {
   if (page === selectedPage || !canCloseEditor()) return;
   closeEditor();
   selectedPage = page;
+  pageTitle.textContent = pages[page];
   for (const button of pageNav.children) {
     if (button.dataset.page === page) button.setAttribute('aria-current', 'page');
     else button.removeAttribute('aria-current');
@@ -120,20 +125,27 @@ preview.addEventListener('load', () => {
       if (page !== selectedPage) preview.src = selectedPage + '.html';
     }
     edit.disabled = !preview.contentDocument?.[previewFields]?.length;
+    if (keepEditing && !edit.disabled && editor.hidden) openEditor();
   } catch {
     edit.disabled = true;
   }
 });
 
-edit.addEventListener('click', () => {
+function openEditor() {
   if (!selectedPage || !editor.hidden) return;
   editor.hidden = false;
+  keepEditing = true;
   edit.setAttribute('aria-expanded', 'true');
+  edit.textContent = 'Editing';
   loadPage(selectedPage);
-  cancel.focus();
+}
+edit.addEventListener('click', () => {
+  openEditor();
+  if (!editor.hidden) cancel.focus();
 });
 cancel.addEventListener('click', () => {
   if (!canCloseEditor()) return;
+  keepEditing = false;
   closeEditor();
   status.textContent = 'Viewing ' + pages[selectedPage] + '.';
   edit.focus();
@@ -309,7 +321,7 @@ async function loadPage(page) {
   if (!doc.getElementById('jas-admin-preview-style')) {
     const style = doc.createElement('style');
     style.id = 'jas-admin-preview-style';
-    style.textContent = '.jas-admin-selection { outline: 3px solid #147b81 !important; outline-offset: 3px; }';
+    style.textContent = '.jas-admin-selection { outline: 3px solid #f2ac00 !important; outline-offset: 3px; }';
     doc.head.append(style);
   }
   try {
@@ -391,7 +403,10 @@ onIdTokenChanged(getAuth(app), async (user) => {
     if (check !== accessCheck) return;
     if (isJasAdmin(token?.claims)) {
       workspace.hidden = false;
-      if (!selectedPage) selectPage('index');
+      if (!selectedPage) {
+        keepEditing = Object.hasOwn(pages, requestedPage);
+        selectPage(keepEditing ? requestedPage : 'index');
+      }
       return;
     }
     status.textContent = user ? 'This account does not have JAS admin access.' : 'Log in with your JAS admin account.';
