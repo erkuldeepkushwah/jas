@@ -8,18 +8,14 @@ const accountEmail = document.querySelector('#account-email');
 const status = document.querySelector('#status');
 
 async function setupLogin() {
-  const [{ initializeApp }, { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }] =
+  const [{ app, isJasAdmin }, { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }] =
     await Promise.all([
-      import('https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js'),
+      import('./firebase.js'),
       import('https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js')
     ]);
 
-  const auth = getAuth(initializeApp({
-    apiKey: 'AIzaSyBBAFNBBHzFFwMk5SWI2Nafm22kY6G7IrA',
-    authDomain: 'brivora-3cf80.firebaseapp.com',
-    projectId: 'brivora-3cf80',
-    appId: '1:177366983831:web:c5263d5629565f0d3775d2'
-  }));
+  const auth = getAuth(app);
+  const adminLink = document.querySelector('#admin-link');
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -52,6 +48,12 @@ async function setupLogin() {
   });
 
   onAuthStateChanged(auth, (user) => {
+    adminLink.hidden = true;
+    if (user) {
+      user.getIdTokenResult().then(({ claims }) => {
+        if (auth.currentUser === user) adminLink.hidden = !isJasAdmin(claims);
+      }).catch(() => {});
+    }
     form.hidden = Boolean(user);
     account.hidden = !user;
     accountEmail.textContent = user?.email ?? '';

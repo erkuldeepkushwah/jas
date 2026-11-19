@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Website Content | JAS Admin</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #edf3f5; color: #172436; font: 1rem/1.5 system-ui, sans-serif; }
+    main { max-width: 1600px; margin: 0 auto; padding: 24px; }
+    nav { display: flex; gap: 16px; flex-wrap: wrap; }
+    a { color: #075d61; }
+    h1 { margin-bottom: 8px; }
+    label { display: grid; gap: 6px; margin: 12px 0; font-weight: 600; }
+    input, select, textarea, button { font: inherit; padding: 10px; border: 1px solid #82919d; border-radius: 8px; }
+    textarea { width: 100%; resize: vertical; }
+    button { background: #075d61; color: white; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .workspace { display: flex; gap: 16px; align-items: flex-start; }
+    .preview { flex: 1; min-width: 0; width: 100%; height: 78vh; border: 1px solid #82919d; border-radius: 12px; background: white; }
+    .page-bar, .edit-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .page-bar button[aria-current="page"] { background: #172436; }
+    #edit { margin-inline-start: auto; }
+    #editor { flex: 0 1 380px; min-width: 0; max-height: 78vh; overflow: auto; }
+    [hidden] { display: none !important; }
+    @media (max-width: 850px) {
+      .workspace { flex-direction: column; }
+      .preview { flex: none; height: 65vh; }
+      #editor { flex: none; width: 100%; max-height: none; order: -1; }
+    }
+    #fields label { background: white; border-radius: 12px; padding: 12px; }
+    :focus-visible { outline: 3px solid #157c83; outline-offset: 3px; }
+  </style>
+  <script type="module" src="assets/admin.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Admin navigation"><a href="index.html">Website</a><a href="login.html">Account</a></nav>
+    <h1>Website content</h1>
+    <p id="status" role="status">Checking admin access…</p>
+    <section id="workspace" hidden>
+      <div class="page-bar">
+        <nav id="pages" aria-label="Website pages"></nav>
+        <button type="button" id="edit" aria-expanded="false" aria-controls="editor">Edit</button>
+      </div>
+      <div class="workspace">
+        <iframe id="preview" class="preview" title="Website page preview"></iframe>
+        <form id="editor" hidden>
+          <label>Find a field <input id="search" type="search" placeholder="Search text, images or links"></label>
+          <div class="edit-bar">
+            <button id="publish" disabled>Publish changes</button>
+            <button type="button" id="cancel">Close editor</button>
+          </div>
+          <div id="fields"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
