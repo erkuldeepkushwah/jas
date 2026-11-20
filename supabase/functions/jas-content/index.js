@@ -1,3 +1,4 @@
+import { handleEnquiries } from './enquiries.js';
 import { createRemoteJWKSet, jwtVerify } from 'npm:jose@6.1.2';
 
 const project = 'brivora-3cf80';
@@ -88,6 +89,14 @@ Deno.serve(async (request) => {
     } });
   }
   const params = new URL(request.url).searchParams;
+  if (params.get('resource') === 'enquiries') {
+    try {
+      return await handleEnquiries(request, params, json, supabase, trustedAdmin, requestBody);
+    } catch (error) {
+      console.error(error.message);
+      return json({ error: 'Enquiry service unavailable. Please try again.' }, 502);
+    }
+  }
   const page = params.get('page');
   if (!pages.has(page)) return json({ error: 'Unknown page' }, 400);
   try {

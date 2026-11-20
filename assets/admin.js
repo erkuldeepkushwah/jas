@@ -5,6 +5,7 @@ import { pages, previewFields, validValue } from './content-fields.js';
 
 const status = document.querySelector('#status');
 const editor = document.querySelector('#editor');
+const enquiriesLink = document.querySelector('#enquiries-link');
 const workspace = document.querySelector('#workspace');
 const pageNav = document.querySelector('#pages');
 const pageTitle = document.querySelector('#page-title');
@@ -391,6 +392,7 @@ onIdTokenChanged(auth, async (user) => {
     if (check !== accessCheck) return;
     if (isJasAdmin(token?.claims)) {
       workspace.hidden = false;
+      enquiriesLink.hidden = false;
       if (!selectedPage) {
         keepEditing = Object.hasOwn(pages, requestedPage);
         selectPage(keepEditing ? requestedPage : 'index');
@@ -403,6 +405,7 @@ onIdTokenChanged(auth, async (user) => {
     status.textContent = 'Could not verify admin access. Reload the page to try again.';
   }
   workspace.hidden = true;
+  enquiriesLink.hidden = true;
   closeEditor();
   selectedPage = null;
   preview.removeAttribute('src');
