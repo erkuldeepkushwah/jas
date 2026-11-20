@@ -1,4 +1,5 @@
 import { handleEnquiries } from './enquiries.js';
+import { handleHolidayPackages } from './holiday-packages.js';
 import { createRemoteJWKSet, jwtVerify } from 'npm:jose@6.1.2';
 
 const project = 'brivora-3cf80';
@@ -95,6 +96,14 @@ Deno.serve(async (request) => {
     } catch (error) {
       console.error(error.message);
       return json({ error: 'Enquiry service unavailable. Please try again.' }, 502);
+    }
+  }
+  if (params.get('resource') === 'holiday-packages') {
+    try {
+      return await handleHolidayPackages(request, params, json, supabase, trustedAdmin, requestBody);
+    } catch (error) {
+      console.error(error.message);
+      return json({ error: 'Holiday package service unavailable. Please try again.' }, 502);
     }
   }
   const page = params.get('page');

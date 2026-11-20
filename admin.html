@@ -25,6 +25,8 @@
     #pages button { text-align: left; background: transparent; border-color: transparent; font-weight: 600; white-space: nowrap; }
     #pages button:hover { background: #ffffff24; }
     #pages button[aria-current="page"] { background: var(--gold); color: #253042; }
+    .package-manager { display: block; margin-top: 14px; padding: 9px 10px; color: white; border: 1px solid #ffffff80; border-radius: 8px; text-decoration: none; font-weight: 600; }
+    .package-manager:hover { background: #ffffff24; }
     .main-panel { padding: clamp(12px, 2vw, 24px); min-width: 0; }
     .page-bar, .edit-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
     #edit { margin-inline-start: auto; }
@@ -72,6 +74,7 @@
       <aside class="sidebar">
         <h2>Website pages</h2>
         <nav id="pages" aria-label="Website pages"></nav>
+        <a class="package-manager" href="admin-holiday.html">Holiday Packages</a>
       </aside>
       <div class="main-panel">
         <div class="page-bar">

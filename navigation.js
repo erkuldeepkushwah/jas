@@ -14,7 +14,8 @@ export function publicNavigation(html, page) {
 export function renderPublicPage(html, page) {
   const scripts = '<script type="module" src="assets/content.js"></script>' +
     '<script type="module" src="assets/enquiry-form.js"></script>';
-  return publicNavigation(html, page).replace(/<\/body>/i, scripts + '</body>');
+  const packageScript = page === 'holiday' ? '<script type="module" src="assets/holiday-packages.js"></script>' : '';
+  return publicNavigation(html, page).replace(/<\/body>/i, scripts + packageScript + '</body>');
 }
 
 // The optional Express entry point uses the same public navigation.

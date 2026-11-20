@@ -16,7 +16,7 @@ for (const page of Object.keys(pages)) {
 const holidays = holidayPage(readFileSync('domestic.html', 'utf8'), readFileSync('international.html', 'utf8'));
 writeFileSync(join(output, 'holiday.html'), renderPublicPage(holidays, 'holiday'));
 
-for (const path of ['login.html', 'admin.html', 'admin-enquiries.html']) {
+for (const path of ['login.html', 'admin.html', 'admin-enquiries.html', 'admin-holiday.html']) {
   cpSync(path, join(output, path));
 }
 writeFileSync(join(output, '.nojekyll'), '');
