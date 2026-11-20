@@ -15,6 +15,7 @@
     h1{margin:0}
     form{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin:18px 0}
     label{display:grid;gap:4px;font-weight:600}
+    .downloads{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
     button,input{font:inherit;border:1px solid #a7bfd4;border-radius:8px;padding:8px 10px}
     button{background:#0061ac;color:#fff;cursor:pointer}
     button:disabled{opacity:.6;cursor:default}
@@ -39,9 +40,16 @@
         <label>From date <input id="from-date" type="date"></label>
         <label>To date <input id="to-date" type="date"></label>
         <button type="submit">Apply filter</button>
-        <button type="button" id="export" disabled>Download Excel</button>
       </form>
       <p>Dates use India Standard Time (IST).</p>
+      <div class="downloads" role="group" aria-labelledby="downloads-label">
+        <strong id="downloads-label">Download Excel</strong>
+        <button type="button" data-export="all" disabled>All enquiries</button>
+        <button type="button" data-export="bus" disabled>Bus</button>
+        <button type="button" data-export="train" disabled>Train</button>
+        <button type="button" data-export="flight" disabled>Flight</button>
+        <button type="button" data-export="holiday" disabled>Holiday</button>
+      </div>
       <div class="scroll">
         <table>
           <thead><tr><th>Received (IST)</th><th>Type</th><th>Name</th><th>Phone</th><th>Details</th></tr></thead>
