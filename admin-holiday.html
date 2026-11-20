@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Holiday Packages | JAS Admin</title>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: #f1f7fc; color: #163653; font: 1rem/1.5 system-ui, sans-serif; }
+    header { border-bottom: 3px solid #ffcc00; padding: 12px 20px; background: #fff; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 9px; }
+    .brand img { object-fit: contain; }
+    nav { display: flex; gap: 14px; flex-wrap: wrap; }
+    a { color: #0061ac; }
+    main { max-width: 930px; margin: auto; padding: 20px; }
+    h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); }
+    h2 { margin: 0; font-size: 1.15rem; }
+    .panel { background: white; border: 1px solid #d4e2ee; border-radius: 12px; margin: 16px 0; padding: clamp(14px, 3vw, 22px); }
+    fieldset { padding: 0; border: 0; margin: 12px 0 0; min-width: 0; }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    label { display: grid; gap: 5px; font-weight: 600; min-width: 0; }
+    label.full { grid-column: 1 / -1; }
+    input, textarea, select, button { font: inherit; border: 1px solid #9fb9d0; border-radius: 8px; padding: 8px 10px; min-width: 0; }
+    input, textarea, select { width: 100%; }
+    textarea { resize: vertical; }
+    .actions, li { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .actions { margin-top: 15px; }
+    button { color: white; background: #0061ac; cursor: pointer; }
+    button:disabled { opacity: .65; cursor: default; }
+    button.secondary { color: #0061ac; background: white; }
+    :focus-visible { outline: 3px solid #dc9e00; outline-offset: 2px; }
+    #packages { list-style: none; margin: 0; padding: 0; }
+    #packages li { border-top: 1px solid #d4e2ee; padding: 9px 0; justify-content: space-between; }
+    #packages li span { overflow-wrap: anywhere; min-width: 0; }
+    @media (max-width: 590px) { .fields { grid-template-columns: minmax(0, 1fr); } }
+  </style>
+  <script type="module" src="assets/admin-holiday.js"></script>
+</head>
+<body>
+  <header>
+    <strong class="brand"><img src="assets/img/logo.png" alt="" width="54" height="42">JAS Admin</strong>
+    <nav aria-label="Admin navigation"><a href="admin.html">Website editor</a><a href="login.html">Account</a></nav>
+  </header>
+  <main>
+    <h1>Holiday Packages</h1>
+    <p id="access-status" role="status">Checking admin access…</p>
+    <div id="management" hidden>
+      <section class="panel" aria-labelledby="form-title">
+        <h2 id="form-title">Add Package</h2>
+        <form id="package-form">
+          <fieldset id="package-fields">
+            <div class="fields">
+              <label>Package type
+                <select name="type" id="package-type" required>
+                  <option value="" disabled selected>Choose a type</option>
+                  <option value="domestic">Domestic</option>
+                  <option value="international">International</option>
+                </select>
+              </label>
+              <label>Package name
+                <input name="title" maxlength="120" required>
+              </label>
+              <label>Destination
+                <input name="destination" maxlength="120">
+              </label>
+              <label>Duration
+                <input name="duration" maxlength="60" placeholder="e.g. 5 nights / 6 days">
+              </label>
+              <label>Starting price per person (₹)
+                <input name="price_inr" type="number" min="1" max="99999999" step="1" inputmode="numeric">
+              </label>
+              <label>Photo URL (HTTPS)
+                <input name="image_url" type="url" maxlength="2000">
+              </label>
+              <label class="full">Upload photo (up to 8 MB)
+                <input id="package-photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif">
+              </label>
+              <label class="full">Description
+                <textarea name="description" maxlength="2000" rows="4"></textarea>
+              </label>
+            </div>
+            <div class="actions">
+              <button id="save-package" type="submit">Publish Package</button>
+              <button id="cancel-edit" class="secondary" type="button" hidden>Cancel edit</button>
+              <a href="holiday.html">View Holiday page</a>
+            </div>
+          </fieldset>
+        </form>
+        <p id="save-status" role="status"></p>
+      </section>
+      <section class="panel" aria-labelledby="packages-title">
+        <h2 id="packages-title">Packages added in admin</h2>
+        <p id="list-status" role="status"></p>
+        <ul id="packages"></ul>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
