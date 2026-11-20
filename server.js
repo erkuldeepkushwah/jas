@@ -2,7 +2,8 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { linkLogin } from './navigation.js';
+import { linkLogin, renderPublicPage } from './navigation.js';
+import { holidayPage } from './holiday-page.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -93,6 +94,12 @@ const pagesWithLogin = [
 app.get(pagesWithLogin, (req, res) => {
   const page = path.join(__dirname, req.path);
   res.send(linkLogin(fs.readFileSync(page, 'utf8')));
+});
+
+app.get(['/holiday', '/holiday.html'], (req, res) => {
+  const domestic = fs.readFileSync(path.join(__dirname, 'domestic.html'), 'utf8');
+  const international = fs.readFileSync(path.join(__dirname, 'international.html'), 'utf8');
+  res.send(renderPublicPage(holidayPage(domestic, international), 'holiday'));
 });
 
 // Serve static images and assets from Jas and root
