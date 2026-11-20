@@ -6,12 +6,20 @@ const auth = getAuth(app);
 const status = document.querySelector('#status');
 const view = document.querySelector('#admin-views');
 const filters = document.querySelector('#filters');
-const exportButton = document.querySelector('#export');
+const exportButtons = document.querySelectorAll('[data-export]');
 const more = document.querySelector('#more');
 const tbody = document.querySelector('#rows');
 const date = new Intl.DateTimeFormat('en-IN', { dateStyle:'medium', timeStyle:'short', timeZone:'Asia/Kolkata' });
 const categories = {flight:'Flight',bus:'Bus',train:'Train',domestic:'Domestic holiday',international:'International holiday',contact:'Contact form'};
 const fields = {name:'Name',phone:'Phone',email:'Email',service:'Service',destination:'Destination',from:'From',to:'To',travelDate:'Travel date',travellers:'Travellers',budget:'Budget',travelClass:'Class / coach',message:'Message'};
+const exportNames = { all: 'Enquiries', bus: 'Bus', train: 'Train', flight: 'Flight', holiday: 'Holiday' };
+const contactServices = {
+  'Bus booking': 'bus',
+  'Train booking': 'train',
+  'Flight booking': 'flight',
+  'Domestic holiday package': 'holiday',
+  'International holiday package': 'holiday'
+};
 let filter = {};
 let cursor = null;
 let count = 0;
@@ -20,7 +28,7 @@ let busy = false;
 function setBusy(value) {
   busy = value;
   for (const element of filters.elements) element.disabled = value;
-  exportButton.disabled = value || count === 0;
+  for (const button of exportButtons) button.disabled = value || view.hidden;
   more.disabled = value;
 }
 function addRow(row) {
@@ -69,44 +77,72 @@ async function load(reset = false) {
     setBusy(false);
   }
 }
-filters.addEventListener('submit', (event) => {
-  event.preventDefault();
+function selectedDates() {
   const from = document.querySelector('#from-date').value;
   const to = document.querySelector('#to-date').value;
   if (from && to && from > to) {
     status.textContent = 'From date must be on or before To date.';
-    return;
+    return null;
   }
-  filter = { from,to };
+  return { from, to };
+}
+
+function exportCategory(row) {
+  if (row.category === 'contact') return contactServices[row.details.service];
+  if (row.category === 'domestic' || row.category === 'international') return 'holiday';
+  return row.category;
+}
+
+filters.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const dates = selectedDates();
+  if (!dates) return;
+  filter = dates;
   load(true);
 });
 more.addEventListener('click', () => load());
-exportButton.addEventListener('click', async () => {
-  if (busy || view.hidden) return;
+
+async function downloadExcel(category) {
+  const user = auth.currentUser;
+  if (busy || view.hidden || !user) return;
+  const dates = selectedDates();
+  if (!dates) return;
+  const label = exportNames[category];
+  const filename = category === 'all' ? 'JAS-Enquiries.xlsx' : 'JAS-' + label + '-Enquiries.xlsx';
   setBusy(true);
   status.textContent = 'Preparing Excel file…';
   try {
     const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
-    const values = [['Received (IST)','Type',...Object.values(fields)]];
+    const keys = Object.keys(fields);
+    const values = [['Received (IST)', 'Type', ...Object.values(fields)]];
     let next = null;
     do {
-      const token = await auth.currentUser.getIdToken();
-      const result = await listEnquiries(token,filter,next);
+      if (auth.currentUser !== user || view.hidden) return;
+      const token = await user.getIdToken();
+      const result = await listEnquiries(token, dates, next);
       for (const row of result.rows) {
-        values.push([date.format(new Date(row.created_at)),categories[row.category],...Object.keys(fields).map((key) => row.details[key] ?? '')]);
+        if (category !== 'all' && exportCategory(row) !== category) continue;
+        values.push([date.format(new Date(row.created_at)), categories[row.category], ...keys.map((key) => row.details[key] ?? '')]);
       }
       next = result.next;
     } while (next);
+    if (auth.currentUser !== user || view.hidden) return;
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook,XLSX.utils.aoa_to_sheet(values),'Enquiries');
-    XLSX.writeFile(workbook,'JAS-Enquiries.xlsx');
-    status.textContent = 'Excel file downloaded.';
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(values), label);
+    XLSX.writeFile(workbook, filename);
+    const total = values.length - 1;
+    status.textContent = filename + ' downloaded. ' + total + (total === 1 ? ' enquiry.' : ' enquiries.');
   } catch (error) {
-    status.textContent = 'Excel download failed. ' + error.message;
+    if (auth.currentUser === user && !view.hidden) status.textContent = 'Excel download failed. ' + error.message;
   } finally {
     setBusy(false);
   }
-});
+}
+
+for (const button of exportButtons) {
+  button.addEventListener('click', () => downloadExcel(button.dataset.export));
+}
+
 let check = 0;
 onIdTokenChanged(auth, async (user) => {
   const attempt = ++check;
