@@ -1,5 +1,5 @@
 import { getAuth, onIdTokenChanged } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
-import { get, getDatabase, ref, update } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js';
+import { readContent, publishContent, uploadPhoto } from './supabase-content.js';
 import { app, isJasAdmin } from './firebase.js';
 import { pages, previewFields, validValue } from './content-fields.js';
 
@@ -15,7 +15,7 @@ const cancel = document.querySelector('#cancel');
 const photos = document.querySelector('#photos');
 const publish = document.querySelector('#publish');
 const fields = document.querySelector('#fields');
-const database = getDatabase(app);
+const auth = getAuth(app);
 let current;
 let selectedPage;
 let publishing = false;
@@ -38,20 +38,9 @@ function clearUpload(entry) {
   entry.uploadedUrl = null;
 }
 
-async function hostedPhoto(entry, page) {
-  if (entry.uploadedUrl) return entry.uploadedUrl;
-  const { getStorage, ref: storageRef, uploadBytes, getDownloadURL, getMetadata } =
-    await import('https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js');
-  entry.objectPath ??= 'jasWebsiteImages/' + page + '/' + crypto.randomUUID();
-  const object = storageRef(getStorage(app), entry.objectPath);
-  // Reuse an object already uploaded if retrieving its URL failed.
-  try {
-    await getMetadata(object);
-  } catch (error) {
-    if (error.code !== 'storage/object-not-found') throw error;
-    await uploadBytes(object, entry.file, { contentType: entry.file.type });
-  }
-  entry.uploadedUrl = await getDownloadURL(object);
+async function hostedPhoto(entry, page, token) {
+  entry.objectPath ??= crypto.randomUUID();
+  entry.uploadedUrl ??= await uploadPhoto(page, entry.objectPath, entry.file, token);
   return entry.uploadedUrl;
 }
 
@@ -325,9 +314,8 @@ async function loadPage(page) {
     doc.head.append(style);
   }
   try {
-    const snapshot = await get(ref(database, 'jasWebsiteContent/' + page));
+    const overrides = await readContent(page);
     if (current !== state) return;
-    const overrides = snapshot.val() ?? {};
     for (const entry of entries) {
       if (entry.file || entry.value !== entry.saved) continue;
       const { field } = entry;
@@ -338,7 +326,7 @@ async function loadPage(page) {
     publish.disabled = false;
     status.textContent = 'Click an item in ' + pages[page] + ' to edit it.';
   } catch {
-    if (current === state) status.textContent = 'Photo previews and sizes are available. Publishing requires Firebase database access.';
+    if (current === state) status.textContent = 'Photo previews and sizes are available. Publishing requires a connection to Supabase.';
   }
 }
 
@@ -369,13 +357,15 @@ editor.addEventListener('submit', async (event) => {
   cancel.disabled = true;
   fields.inert = true;
   try {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error('Sign in to publish changes.');
     if (edited.some(({ entry }) => entry.file)) status.textContent = 'Uploading photos…';
     for (const item of edited) {
       const { entry } = item;
-      if (entry.file) item.value = await hostedPhoto(entry, state.page);
+      if (entry.file) item.value = await hostedPhoto(entry, state.page, token);
       changes[entry.field.key] = item.value === entry.field.value ? null : item.value;
     }
-    await update(ref(database, 'jasWebsiteContent/' + state.page), changes);
+    await publishContent(state.page, changes, token);
     for (const { entry, value } of edited) {
       if (entry.file && current === state) entry.field.apply(value);
       entry.saved = entry.value = value;
@@ -384,9 +374,7 @@ editor.addEventListener('submit', async (event) => {
     if (current === state && state.selection) showDetails(state, state.selection);
     status.textContent = 'Published changes for ' + pages[state.page] + '.';
   } catch (error) {
-    status.textContent = error.code?.startsWith('storage/')
-      ? 'Photo upload failed. Check Firebase Storage access and try again.'
-      : 'Publish failed. Check Firebase database access and try again.';
+    status.textContent = 'Publish failed. ' + error.message;
   } finally {
     publishing = false;
     cancel.disabled = false;
@@ -396,7 +384,7 @@ editor.addEventListener('submit', async (event) => {
 });
 
 let accessCheck = 0;
-onIdTokenChanged(getAuth(app), async (user) => {
+onIdTokenChanged(auth, async (user) => {
   const check = ++accessCheck;
   try {
     const token = user && await user.getIdTokenResult();

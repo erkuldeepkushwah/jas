@@ -116,20 +116,18 @@ Photographs are from Wikimedia Commons under CC BY and CC BY-SA licences, plus i
 
 ## JAS content editor
 
-The admin page edits the existing text, image URLs, and links in the content and
-footer of the eight public pages. Published changes are stored in Firebase
-Realtime Database under `jasWebsiteContent` and take effect without a site deploy.
+The Firebase account still signs in to the editor. The Supabase Edge Function
+validates that account's Firebase ID token and allows writes only for the
+configured JAS admin UID.
 
-1. In the `brivora-3cf80` Firebase project, add the `jasWebsiteContent` rules
-   from `firebase-jas-content.rules.json` to the existing database rules.
-   Preserve the other branches. Ensure ancestor rules do not grant broader
-   write access to this branch, as Realtime Database rules cascade.
-2. Sign in as `kuldeep@gmail.com`. JAS admin access is tied to that account's
-   Firebase UID (`ydJDSUYmJoWeww9rfrboUQkfnPv1`). Email verification is optional.
-3. Sign out and sign back in. Open **Manage website content** from the login page,
-   choose a page, and select **Publish changes** after editing.
+- Published page fields are stored in `public.jas_page_content`.
+- New photo files are uploaded to the public `jas-website-images` bucket on
+  publish. Only the Edge Function can write to the bucket.
+- Public pages read published fields through the Edge Function. For pages without
+  a Supabase record, it falls back to readable Firebase content and carries that
+  content into the first Supabase publish. Existing image links are retained.
+- The browser uses no Supabase secret. The Edge Function reads its service key
+  from the Supabase runtime environment.
 
-For photo uploads, enable Cloud Storage on the configured Firebase project and
-merge the `jasWebsiteImages` match from `firebase-jas-storage.rules` into its
-existing Storage rules. The JAS admin can upload JPEG, PNG, WebP, GIF and AVIF
-files up to 8 MB. The selected image previews before it is uploaded on publish.
+The schema is in `supabase/jas-content-schema.sql` and the function source is
+in `supabase/functions/jas-content/index.js`.
